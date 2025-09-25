@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ config.title }}</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .header {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        padding: 20px;
+        color: white;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 2em;
+        margin-bottom: 10px;
+      }
+
+      .header p {
+        opacity: 0.9;
+      }
+
+      .nav-buttons {
+        margin-top: 15px;
+      }
+
+      .btn {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 10px 20px;
+        border-radius: 25px;
+        cursor: pointer;
+        margin: 0 10px;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+      }
+
+      .btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        text-decoration: none;
+        color: white;
+      }
+
+      .chat-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        max-width: 1600px; /* 800px에서 1600px로 2배 확장 */
+        margin: 20px auto;
+        padding: 0 20px;
+      }
+
+      .chat-messages {
+        flex: 1;
+        background: white;
+        border-radius: 20px 20px 0 0;
+        padding: 20px;
+        overflow-y: auto;
+        min-height: 400px;
+        max-height: 500px;
+      }
+
+      .message {
+        margin-bottom: 20px;
+        display: flex;
+        align-items: flex-start;
+      }
+
+      .user-message {
+        justify-content: flex-end;
+      }
+
+      .bot-message {
+        justify-content: flex-start;
+      }
+
+      .message-bubble {
+        max-width: 80%;
+        padding: 15px 20px;
+        border-radius: 20px;
+        line-height: 1.5;
+      }
+
+      .user-message .message-bubble {
+        background: #667eea;
+        color: white;
+        border-bottom-right-radius: 5px;
+      }
+
+      .bot-message .message-bubble {
+        background: #f1f1f1;
+        color: #333;
+        border-bottom-left-radius: 5px;
+      }
+
+      .chat-input-container {
+        background: white;
+        padding: 25px 30px; /* 패딩 증가 */
+        border-radius: 0 0 20px 20px;
+        display: flex;
+        gap: 15px; /* 간격 증가 */
+        align-items: flex-end; /* 하단 정렬 */
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); /* 상단 그림자 */
+      }
+
+      .chat-input {
+        flex: 1;
+        padding: 20px 25px; /* 패딩 증가로 더 넓은 느낌 */
+        border: 2px solid #e1e5e9; /* 테두리 강화 */
+        border-radius: 30px; /* 더 둥글게 */
+        font-size: 18px; /* 폰트 크기 증가 */
+        outline: none;
+        resize: none;
+        min-height: 60px; /* 높이도 약간 증가 */
+        max-height: 200px; /* 최대 높이 설정 */
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.5;
+        transition: all 0.3s ease;
+      }
+
+      .chat-input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        transform: translateY(-2px);
+      }
+
+      .send-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 18px 30px; /* 패딩 증가 */
+        border-radius: 30px; /* 더 둥글게 */
+        cursor: pointer;
+        font-size: 18px; /* 폰트 크기 증가 */
+        font-weight: 600; /* 폰트 굵게 */
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        min-width: 120px; /* 최소 너비 설정 */
+      }
+
+      .send-btn:hover {
+        background: linear-gradient(135deg, #5a67d8 0%, #6b4fa0 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+      }
+
+      .send-btn:active {
+        transform: translateY(0px);
+        box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+      }
+
+      .send-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+
+      .loading {
+        display: none;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+
+      .loading-dots {
+        display: flex;
+        gap: 5px;
+      }
+
+      .loading-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #667eea;
+        animation: loading 1.4s ease-in-out infinite both;
+      }
+
+      .loading-dot:nth-child(1) {
+        animation-delay: -0.32s;
+      }
+      .loading-dot:nth-child(2) {
+        animation-delay: -0.16s;
+      }
+
+      @keyframes loading {
+        0%,
+        80%,
+        100% {
+          transform: scale(0);
+        }
+        40% {
+          transform: scale(1);
+        }
+      }
+
+      .status-info {
+        text-align: center;
+        color: #666;
+        font-size: 0.9em;
+        padding: 10px;
+        background: #f9f9f9;
+        border-radius: 10px;
+        margin-bottom: 10px;
+      }
+
+      @media (max-width: 768px) {
+        .chat-container {
+          margin: 10px;
+          padding: 0 10px;
+          max-width: 100%; /* 모바일에서는 전체 너비 사용 */
+        }
+
+        .message-bubble {
+          max-width: 90%;
+        }
+
+        .header h1 {
+          font-size: 1.5em;
+        }
+
+        .chat-input {
+          font-size: 16px; /* 모바일에서 줌 방지 */
+          min-height: 50px;
+          padding: 15px 20px;
+        }
+
+        .send-btn {
+          padding: 15px 25px;
+          font-size: 16px;
+          min-width: 100px;
+        }
+
+        .chat-input-container {
+          padding: 20px 15px;
+          gap: 10px;
+        }
+      }
+
+      /* 태블릿 사이즈 개선 */
+      @media (min-width: 769px) and (max-width: 1200px) {
+        .chat-container {
+          max-width: 1200px; /* 태블릿에서는 중간 크기 */
+        }
+      }
+
+      /* 대형 화면 최적화 */
+      @media (min-width: 1600px) {
+        .chat-container {
+          max-width: 1800px; /* 대형 화면에서는 더욱 넓게 */
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>{{ config.title }}</h1>
+      <p>{{ config.description }}</p>
+      <div class="nav-buttons">
+        <a href="/" class="btn">🏠 메인으로</a>
+        <button onclick="resetChat()" class="btn">🔄 대화 초기화</button>
+      </div>
+    </div>
+
+    <div class="chat-container">
+      <div class="chat-messages" id="chatMessages">
+        {% if bot_type == 'chat' %}
+        <div class="status-info" id="statusInfo">대화 횟수: 0/10</div>
+        {% endif %}
+        <div class="message bot-message">
+          <div class="message-bubble">
+            안녕하세요! {{ config.title }}입니다. 무엇을 도와드릴까요?
+          </div>
+        </div>
+      </div>
+
+      <div class="loading" id="loading">
+        <div class="loading-dots">
+          <div class="loading-dot"></div>
+          <div class="loading-dot"></div>
+          <div class="loading-dot"></div>
+        </div>
+      </div>
+
+      <div class="chat-input-container">
+        <textarea
+          id="messageInput"
+          class="chat-input"
+          placeholder="{{ config.placeholder }}"
+          rows="1"
+        ></textarea>
+        <button onclick="sendMessage()" class="send-btn" id="sendBtn">
+          전송
+        </button>
+      </div>
+    </div>
+
+    <script>
+      const botType = "{{ bot_type }}";
+      let isLoading = false;
+
+      // 엔터키로 전송
+      document
+        .getElementById("messageInput")
+        .addEventListener("keydown", function (e) {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+          }
+        });
+
+      // 텍스트 영역 자동 크기 조절 (개선된 버전)
+      document
+        .getElementById("messageInput")
+        .addEventListener("input", function () {
+          this.style.height = "auto";
+          this.style.height = Math.min(this.scrollHeight, 200) + "px"; // 최대 높이 증가
+
+          // 텍스트 영역 스크롤 최하단으로 유지
+          this.scrollTop = this.scrollHeight;
+        });
+
+      function addMessage(content, isUser) {
+        const messagesContainer = document.getElementById("chatMessages");
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${
+          isUser ? "user-message" : "bot-message"
+        }`;
+
+        const bubbleDiv = document.createElement("div");
+        bubbleDiv.className = "message-bubble";
+        bubbleDiv.innerHTML = content.replace(/\n/g, "<br>");
+
+        messageDiv.appendChild(bubbleDiv);
+        messagesContainer.appendChild(messageDiv);
+
+        // 스크롤을 맨 아래로
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      function showLoading(show) {
+        const loadingDiv = document.getElementById("loading");
+        const sendBtn = document.getElementById("sendBtn");
+        const messageInput = document.getElementById("messageInput");
+
+        if (show) {
+          loadingDiv.style.display = "flex";
+          sendBtn.disabled = true;
+          messageInput.disabled = true;
+          isLoading = true;
+        } else {
+          loadingDiv.style.display = "none";
+          sendBtn.disabled = false;
+          messageInput.disabled = false;
+          isLoading = false;
+        }
+      }
+
+      async function sendMessage() {
+        if (isLoading) return;
+
+        const messageInput = document.getElementById("messageInput");
+        const message = messageInput.value.trim();
+
+        if (!message) return;
+
+        // 사용자 메시지 추가
+        addMessage(message, true);
+        messageInput.value = "";
+        messageInput.style.height = "auto";
+
+        // 로딩 표시
+        showLoading(true);
+
+        try {
+          const response = await fetch("/api/chat", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              bot_type: botType,
+              message: message,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (data.error) {
+            addMessage(`오류: ${data.error}`, false);
+          } else {
+            addMessage(data.response, false);
+
+            // 10줄 챗봇의 경우 턴 카운트 업데이트
+            if (botType === "chat" && data.turn_count) {
+              const statusInfo = document.getElementById("statusInfo");
+              if (statusInfo) {
+                statusInfo.textContent = `대화 횟수: ${data.turn_count}`;
+              }
+            }
+
+            // 대화 완료 체크
+            if (data.finished) {
+              messageInput.disabled = true;
+              document.getElementById("sendBtn").disabled = true;
+            }
+          }
+        } catch (error) {
+          addMessage(`통신 오류: ${error.message}`, false);
+        }
+
+        showLoading(false);
+      }
+
+      async function resetChat() {
+        if (confirm("대화를 초기화하시겠습니까?")) {
+          try {
+            await fetch(`/api/reset/${botType}`, {
+              method: "POST",
+            });
+
+            // 페이지 새로고침
+            location.reload();
+          } catch (error) {
+            alert("초기화 중 오류가 발생했습니다.");
+          }
+        }
+      }
+    </script>
+  </body>
+</html>

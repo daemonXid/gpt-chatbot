@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 챗봇 모음</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .bots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .bot-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .bot-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .bot-icon {
+            font-size: 3em;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .bot-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .bot-description {
+            text-align: center;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .bot-features {
+            list-style: none;
+            padding: 0;
+        }
+
+        .bot-features li {
+            padding: 5px 0;
+            color: #555;
+            font-size: 0.9em;
+        }
+
+        .bot-features li:before {
+            content: "✓ ";
+            color: #4CAF50;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .advanced-section {
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .section-title {
+            text-align: center;
+            color: white;
+            font-size: 2em;
+            margin-bottom: 30px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .advanced-card {
+            background: linear-gradient(135deg, #ff7b7b 0%, #667eea 100%);
+            color: white;
+        }
+
+        .advanced-card .bot-title {
+            color: white;
+        }
+
+        .advanced-card .bot-description {
+            color: rgba(255,255,255,0.9);
+        }
+
+        .advanced-card .bot-features li {
+            color: rgba(255,255,255,0.8);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5em;
+            }
+
+            .bots-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .bot-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI 챗봇 모음</h1>
+            <p>다양한 AI 챗봇들을 체험해보세요!</p>
+        </div>
+
+        <div class="bots-grid">
+            <a href="/chatbot/chat" class="bot-card">
+                <div class="bot-icon">💬</div>
+                <div class="bot-title">10줄 대화 챗봇</div>
+                <div class="bot-description">자연스러운 대화를 통해 AI와 소통해보세요</div>
+                <ul class="bot-features">
+                    <li>최대 10턴까지 대화</li>
+                    <li>맥락 유지 대화</li>
+                    <li>친근한 한국어 응답</li>
+                </ul>
+            </a>
+
+            <a href="/chatbot/translator" class="bot-card">
+                <div class="bot-icon">🌐</div>
+                <div class="bot-title">번역 봇</div>
+                <div class="bot-description">다양한 언어로 정확한 번역을 제공합니다</div>
+                <ul class="bot-features">
+                    <li>다국어 번역</li>
+                    <li>높은 번역 정확도</li>
+                    <li>간단한 사용법</li>
+                </ul>
+            </a>
+
+            <a href="/chatbot/summarizer" class="bot-card">
+                <div class="bot-icon">📄</div>
+                <div class="bot-title">요약 봇</div>
+                <div class="bot-description">긴 텍스트를 핵심 내용으로 요약해드립니다</div>
+                <ul class="bot-features">
+                    <li>핵심 내용 추출</li>
+                    <li>가독성 높은 요약</li>
+                    <li>다양한 텍스트 지원</li>
+                </ul>
+            </a>
+
+            <a href="/chatbot/question" class="bot-card">
+                <div class="bot-icon">❓</div>
+                <div class="bot-title">질문 생성 봇</div>
+                <div class="bot-description">주제에 맞는 다양한 질문을 생성합니다</div>
+                <ul class="bot-features">
+                    <li>창의적 질문 생성</li>
+                    <li>교육용 질문</li>
+                    <li>토론 유도 질문</li>
+                </ul>
+            </a>
+
+            <a href="/chatbot/coding" class="bot-card">
+                <div class="bot-icon">💻</div>
+                <div class="bot-title">코딩 도우미 봇</div>
+                <div class="bot-description">프로그래밍 질문에 친절하게 답변합니다</div>
+                <ul class="bot-features">
+                    <li>다양한 언어 지원</li>
+                    <li>실제 코드 예시</li>
+                    <li>초보자 친화적</li>
+                </ul>
+            </a>
+
+            <a href="/chatbot/diary" class="bot-card">
+                <div class="bot-icon">📔</div>
+                <div class="bot-title">일기 작성 봇</div>
+                <div class="bot-description">하루 경험을 아름다운 일기로 만들어드립니다</div>
+                <ul class="bot-features">
+                    <li>감성적인 글쓰기</li>
+                    <li>개인화된 일기</li>
+                    <li>성찰 도움</li>
+                </ul>
+            </a>
+        </div>
+
+        <div class="advanced-section">
+            <div class="section-title">🚀 고급 AI 봇들</div>
+            <div class="bots-grid">
+                <div class="bot-card advanced-card">
+                    <div class="bot-icon">📧</div>
+                    <div class="bot-title">이메일 분류 봇</div>
+                    <div class="bot-description">Embeddings API로 고객 문의를 자동 분류</div>
+                    <ul class="bot-features">
+                        <li>의미적 유사성 분석</li>
+                        <li>7가지 카테고리 분류</li>
+                        <li>고객 서비스 자동화</li>
+                    </ul>
+                    <div style="text-align: center; margin-top: 15px; opacity: 0.8;">
+                        <small>터미널 실행: python email_classifier_bot.py</small>
+                    </div>
+                </div>
+
+                <div class="bot-card advanced-card">
+                    <div class="bot-icon">🎙️</div>
+                    <div class="bot-title">음성 변환 봇</div>
+                    <div class="bot-description">Whisper API로 오디오를 텍스트로 변환</div>
+                    <ul class="bot-features">
+                        <li>고정밀 음성 인식</li>
+                        <li>다국어 지원</li>
+                        <li>노이즈 환경 대응</li>
+                    </ul>
+                    <div style="text-align: center; margin-top: 15px; opacity: 0.8;">
+                        <small>터미널 실행: python podcast_transcription_bot.py</small>
+                    </div>
+                </div>
+
+                <div class="bot-card advanced-card">
+                    <div class="bot-icon">📰</div>
+                    <div class="bot-title">뉴스 그룹화 봇</div>
+                    <div class="bot-description">Embeddings API로 유사 뉴스를 클러스터링</div>
+                    <ul class="bot-features">
+                        <li>의미 기반 그룹화</li>
+                        <li>트렌드 분석</li>
+                        <li>중복 기사 탐지</li>
+                    </ul>
+                    <div style="text-align: center; margin-top: 15px; opacity: 0.8;">
+                        <small>터미널 실행: python news_clustering_bot.py</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
