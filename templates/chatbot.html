@@ -443,5 +443,205 @@
         }
       }
     </script>
+
+    <style>
+      /* AI 토론 봇 전용 스타일 */
+      .debate-setup-container {
+        background: white;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      }
+      .debate-setup-container h2 {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      .debate-setup-container .form-group {
+        margin-bottom: 20px;
+      }
+      .debate-setup-container label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 8px;
+      }
+      .debate-setup-container .form-control {
+        width: 100%;
+        padding: 15px;
+        font-size: 16px;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+      }
+      .debate-setup-container .btn-group {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+      }
+      .personas-container {
+        display: none; /* 초기에 숨김 */
+        margin-top: 20px;
+        display: none;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+    </style>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const botType = "{{ bot_type }}";
+        if (botType === 'debate') {
+            const chatContainer = document.querySelector('.chat-container');
+            const originalChatMessages = document.getElementById('chatMessages');
+            const originalMessageForm = document.querySelector('.chat-input-container');
+            let eventSource;
+
+            // 1. 기존 UI 숨기기
+            originalChatMessages.style.display = 'none';
+            originalMessageForm.style.display = 'none';
+
+            // 2. 새로운 설정 UI 생성
+            const setupContainer = document.createElement('div');
+            setupContainer.className = 'debate-setup-container';
+            setupContainer.innerHTML = `
+                <h2>토론 설정</h2>
+                <div class="form-group">
+                    <label for="topicInput">토론 주제</label>
+                    <input type="text" id="topicInput" class="form-control" placeholder="예: 소셜 미디어는 사회에 긍정적인가?">
+                </div>
+                <div class="btn-group">
+                    <button id="generatePersonasBtn" class="send-btn">페르소나 생성</button>
+                </div>
+                <div id="loadingSpinner" style="display: none; text-align: center; margin-top: 20px;">페르소나를 생성 중입니다...</div>
+                <div id="personasContainer" class="personas-container">
+                    <div class="form-group">
+                        <label for="persona1Text">찬성 측 페르소나</label>
+                        <textarea id="persona1Text" class="form-control" rows="6"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="persona2Text">반대 측 페르소나</label>
+                        <textarea id="persona2Text" class="form-control" rows="6"></textarea>
+                    </div>
+                </div>
+                <div id="debateActions" class="btn-group" style="display: none; margin-top: 20px;">
+                    <button id="startDebateBtn" class="send-btn">토론 시작</button>
+                    <button id="recreateBtn" class="btn">페르소나 재생성</button>
+                </div>
+            `;
+            chatContainer.appendChild(setupContainer);
+
+            // 3. 요소 및 이벤트 리스너 설정
+            const topicInput = document.getElementById('topicInput');
+            const generateBtn = document.getElementById('generatePersonasBtn');
+            const recreateBtn = document.getElementById('recreateBtn');
+            const startBtn = document.getElementById('startDebateBtn');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const personasContainer = document.getElementById('personasContainer');
+            const debateActions = document.getElementById('debateActions');
+            const persona1Text = document.getElementById('persona1Text');
+            const persona2Text = document.getElementById('persona2Text');
+
+            generateBtn.addEventListener('click', fetchPersonas);
+            recreateBtn.addEventListener('click', fetchPersonas);
+            startBtn.addEventListener('click', startDebate);
+
+            async function fetchPersonas() {
+                const topic = topicInput.value.trim();
+                if (!topic) {
+                    alert('토론 주제를 입력해주세요.');
+                    return;
+                }
+
+                loadingSpinner.style.display = 'block';
+                personasContainer.style.display = 'none';
+                debateActions.style.display = 'none';
+                generateBtn.disabled = true;
+
+                try {
+                    const response = await fetch('/api/generate-personas', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ topic: topic })
+                    });
+                    const data = await response.json();
+
+                    if (data.error) {
+                        alert(`오류: ${data.error}`);
+                        return;
+                    }
+
+                    persona1Text.value = data.persona1;
+                    persona2Text.value = data.persona2;
+
+                    personasContainer.style.display = 'grid';
+                    debateActions.style.display = 'flex';
+
+                } catch (err) {
+                    alert(`페르소나 생성 중 오류가 발생했습니다: ${err.message}`);
+                } finally {
+                    loadingSpinner.style.display = 'none';
+                    generateBtn.disabled = false;
+                }
+            }
+
+            async function startDebate() {
+                const topic = topicInput.value.trim();
+                const persona1 = persona1Text.value.trim();
+                const persona2 = persona2Text.value.trim();
+
+                if (!topic || !persona1 || !persona2) {
+                    alert('주제와 두 페르소나 모두 내용이 필요합니다.');
+                    return;
+                }
+
+                startBtn.disabled = true;
+                recreateBtn.disabled = true;
+
+                try {
+                    // 1. 토론 설정 서버에 전송
+                    await fetch('/api/prepare-debate', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ topic, persona1, persona2 })
+                    });
+
+                    // 2. UI 전환
+                    setupContainer.style.display = 'none';
+                    originalChatMessages.style.display = 'block';
+                    originalChatMessages.innerHTML = '<div class="message bot-message"><div class="message-bubble">잠시 후 토론이 시작됩니다...</div></div>';
+
+                    // 3. 스트리밍 시작
+                    eventSource = new EventSource('/api/debate-stream');
+                    let isFirstMessage = true;
+
+                    eventSource.onmessage = function(event) {
+                        if (isFirstMessage) {
+                            originalChatMessages.innerHTML = '';
+                            isFirstMessage = false;
+                        }
+                        originalChatMessages.innerHTML += event.data;
+                        originalChatMessages.scrollTop = originalChatMessages.scrollHeight;
+                    };
+
+                    eventSource.onerror = function(err) {
+                        originalChatMessages.innerHTML += "<p style='color: red; padding: 10px;'>스트리밍 중 오류가 발생하여 연결이 종료되었습니다.</p>";
+                        eventSource.close();
+                    };
+
+                } catch (err) {
+                    alert(`토론 시작 중 오류 발생: ${err.message}`);
+                    startBtn.disabled = false;
+                    recreateBtn.disabled = false;
+                }
+            }
+
+            // 기존 대화 초기화 함수 오버라이드
+            window.resetChat = function() {
+                if (confirm("설정을 초기화하고 페이지를 새로고침하시겠습니까?")) {
+                    if (eventSource) eventSource.close();
+                    fetch('/api/reset/debate', { method: 'POST' }).finally(() => location.reload());
+                }
+            }
+        }
+      });
+    </script>
   </body>
 </html>

@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, Response
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
 import uuid
+from ollama.debate_generator import stream_debate
 
 # .env 파일에서 환경변수를 로드합니다
 load_dotenv()
@@ -54,6 +55,11 @@ def chatbot_page(bot_type):
             'title': '일기 작성 봇',
             'description': '하루 경험을 바탕으로 아름다운 일기를 작성해줍니다.',
             'placeholder': '오늘 하루 있었던 일을 말해주세요.'
+        },
+        'debate': {
+            'title': 'AI 토론 봇',
+            'description': '두 AI가 주어진 주제에 대해 토론하는 것을 지켜보세요.',
+            'placeholder': ''
         }
     }
 
@@ -226,13 +232,61 @@ def chat_api():
     except Exception as e:
         return jsonify({'error': f'오류가 발생했습니다: {str(e)}'})
 
+from ollama.persona_generator import generate_personas
+
 @app.route('/api/reset/<bot_type>', methods=['POST'])
 def reset_conversation(bot_type):
     """대화 초기화"""
     conversation_key = f'conversation_{bot_type}'
     if conversation_key in session:
         del session[conversation_key]
+    # 토론 봇 세션 정보도 초기화
+    if 'debate_settings' in session:
+        del session['debate_settings']
     return jsonify({'status': 'success'})
+
+# --- AI 토론 봇을 위한 새로운 API들 ---
+
+@app.route('/api/generate-personas', methods=['POST'])
+def api_generate_personas():
+    """토픽을 받아 두 개의 대립하는 페르소나를 생성합니다."""
+    data = request.json
+    topic = data.get('topic')
+    if not topic:
+        return jsonify({'error': '토픽이 제공되지 않았습니다.'}), 400
+    
+    personas = generate_personas(topic)
+    return jsonify(personas)
+
+@app.route('/api/prepare-debate', methods=['POST'])
+def prepare_debate():
+    """토론 시작 전, 주제와 페르소나를 세션에 저장합니다."""
+    data = request.json
+    session['debate_settings'] = {
+        'topic': data.get('topic'),
+        'persona1': data.get('persona1'),
+        'persona2': data.get('persona2')
+    }
+    return jsonify({'status': 'success'})
+
+@app.route('/api/debate-stream')
+def debate_stream():
+    """세션에 저장된 정보로 AI 토론 스트리밍을 시작합니다."""
+    settings = session.get('debate_settings')
+    if not settings:
+        def error_generate():
+            yield "data: <p style='color: red;'>토론 설정이 만료되었거나 없습니다. 페이지를 새로고침하여 다시 시도해주세요.</p>\n\n"
+        return Response(error_generate(), mimetype='text/event-stream')
+
+    def generate():
+        for content_part in stream_debate(
+            topic=settings['topic'], 
+            persona1=settings['persona1'], 
+            persona2=settings['persona2']
+        ):
+            yield f"data: {content_part}\n\n"
+            
+    return Response(generate(), mimetype='text/event-stream')
 
 if __name__ == '__main__':
     # 캐시 비활성화를 위한 설정
